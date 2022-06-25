@@ -36,6 +36,7 @@ class BaseNetwork(nn.Module):
         layers += [nn.Linear(layer_sizes[-1], num_classes)]
         # nn.Sequential summarizes a list of modules into a single module, applying them in sequence
         self.layers = nn.Sequential(*layers)
+        
 
         # We store all hyperparameters in a dictionary for saving and loading of the model
         self.config = {

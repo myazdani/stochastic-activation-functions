@@ -308,7 +308,7 @@ def measure_number_dead_neurons(net):
         imgs = imgs.view(imgs.size(0), -1)
         for layer in net.layers[:-1]:
             imgs = layer(imgs)
-            if isinstance(layer, ActivationFunction):
+            if isinstance(layer, activation_functions.ActivationFunction):
                 # Are all activations == 0 in the batch, and we did not record the opposite in the last batches?
                 neurons_dead[layer_index] = torch.logical_and(neurons_dead[layer_index], (imgs == 0).all(dim=0))
                 layer_index += 1
@@ -410,5 +410,5 @@ for act_fn_name in act_fn_by_name:
     
 set_seed(42)
 # fix this
-# net_relu = networks.BaseNetwork(act_fn=activation_functions.ReLU).to(device)
-# measure_number_dead_neurons(net_relu)    
+net_relu = networks.BaseNetwork(act_fn=activation_functions.ReLU()).to(device)
+measure_number_dead_neurons(net_relu)    
