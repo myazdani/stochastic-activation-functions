@@ -15,6 +15,8 @@ import torch.optim as optim
 import torch.utils.data as data
 import torchvision
 
+from tqdm import tqdm
+
 # Path to the folder where the datasets are/should be downloaded (e.g. MNIST)
 DATASET_PATH = os.environ.get("PATH_DATASETS", "data/")
 
@@ -69,7 +71,7 @@ def _get_model_file(model_path, model_name):
     return os.path.join(model_path, model_name + ".tar")
 
 
-def load_model(model_path, model_name, net=None):
+def load_model(model_path, model_name, device, net=None, **kwargs):
     """Loads a saved model from disk.
 
     Args:
@@ -153,7 +155,7 @@ def visualize_gradients(net, train_set, device, color="C0"):
     plt.close()    
     
     
-def train_model(net, model_name, train_set, device, max_epochs=50, patience=7, batch_size=256, overwrite=False):
+def train_model(net, model_name, train_set, max_epochs=50, patience=7, batch_size=256, plot_curves = False, overwrite=False, **kwargs):
     """Train a model on the training set of FashionMNIST.
 
     Args:
@@ -187,6 +189,7 @@ def train_model(net, model_name, train_set, device, max_epochs=50, patience=7, b
             net.train()
             true_preds, count = 0.0, 0
             for imgs, labels in tqdm(train_loader_local, desc=f"Epoch {epoch+1}", leave=False):
+                device = kwargs['device']
                 imgs, labels = imgs.to(device), labels.to(device)  # To GPU
                 optimizer.zero_grad()  # Zero-grad can be placed anywhere before "loss.backward()"
                 preds = net(imgs)
@@ -201,7 +204,7 @@ def train_model(net, model_name, train_set, device, max_epochs=50, patience=7, b
             ##############
             # Validation #
             ##############
-            val_acc = test_model(net, val_loader)
+            val_acc = test_model(net, kwargs['val_loader'], **kwargs)
             val_scores.append(val_acc)
             print(
                 #f"[Epoch {epoch+1:i}] Training accuracy: {train_acc*100.0:05.2f}%, Validation accuracy: {val_acc*100.0:05.2f}%"
@@ -217,20 +220,21 @@ def train_model(net, model_name, train_set, device, max_epochs=50, patience=7, b
                 break
 
         # Plot a curve of the validation accuracy
-        plt.plot([i for i in range(1, len(val_scores) + 1)], val_scores)
-        plt.xlabel("Epochs")
-        plt.ylabel("Validation accuracy")
-        plt.title(f"Validation performance of {model_name}")
-        plt.show()
-        plt.close()
+        if plot_curves:
+            plt.plot([i for i in range(1, len(val_scores) + 1)], val_scores)
+            plt.xlabel("Epochs")
+            plt.ylabel("Validation accuracy")
+            plt.title(f"Validation performance of {model_name}")
+            plt.show()
+            plt.close()
 
-    load_model(CHECKPOINT_PATH, model_name, net=net)
-    test_acc = test_model(net, test_loader)
+    load_model(CHECKPOINT_PATH, model_name, net=net, **kwargs)
+    test_acc = test_model(net, kwargs['test_loader'], **kwargs)
     print((f" Test accuracy: {test_acc*100.0:4.2f}% ").center(50, "=") + "\n")
     return test_acc
 
 
-def test_model(net, data_loader):
+def test_model(net, data_loader, device, **kwargs):
     """Test a model on a specified dataset.
 
     Args:
