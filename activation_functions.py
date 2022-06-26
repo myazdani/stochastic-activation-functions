@@ -73,6 +73,7 @@ class TanhELU(ActivationFunction):
         return (x_exp - neg_x_exp) / (x_exp + neg_x_exp)
 
     def forward(self, x):
+        device = x.device
         
         if x.get_device()<0:
             # use cpu
@@ -98,6 +99,7 @@ class TanhReLU(ActivationFunction):
         return (x_exp - neg_x_exp) / (x_exp + neg_x_exp)
 
     def forward(self, x):
+        device = x.device
         
         if x.get_device()<0:
             # use cpu
